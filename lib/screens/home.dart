@@ -1,4 +1,3 @@
-
 import 'package:animate_do/animate_do.dart';
 import 'package:asistente_ia/globals/colors.dart';
 import 'package:asistente_ia/service/open_ia.dart';
@@ -7,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
-
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -77,7 +75,7 @@ class _HomePageState extends State<HomePage> {
         title: BounceInDown(
           child: const Text('Jarvis'),
         ),
-        leading: const Icon(Icons.menu),
+        //leading: const Icon(Icons.menu),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -124,25 +122,27 @@ class _HomePageState extends State<HomePage> {
         child: FloatingActionButton(
           backgroundColor: Pallete.firstSuggestionBoxColor,
           onPressed: () async {
-            if (await speechToText.hasPermission &&
-                speechToText.isNotListening) {
-              await startListening();
-            } else if (speechToText.isListening) {
-              final speech = await openAIService.isArtPromptAPI(lastWords);
-              if (speech.contains('https')) {
-                generatedImageUrl = speech;
-                generatedContent = null;
-                setState(() {});
-              } else {
-                generatedImageUrl = null;
-                generatedContent = speech;
-                setState(() {});
-                await systemSpeak(speech);
-              }
-              await stopListening();
-            } else {
-              initSpeechToText();
-            }
+            _showFloatingDialog(context);
+
+            // if (await speechToText.hasPermission &&
+            //     speechToText.isNotListening) {
+            //   await startListening();
+            // } else if (speechToText.isListening) {
+            //   final speech = await openAIService.isArtPromptAPI('Prueba');
+            //   if (speech.contains('https')) {
+            //     generatedImageUrl = speech;
+            //     generatedContent = null;
+            //     setState(() {});
+            //   } else {
+            //     generatedImageUrl = null;
+            //     generatedContent = speech;
+            //     setState(() {});
+            //     await systemSpeak(speech);
+            //   }
+            //   await stopListening();
+            // } else {
+            //   initSpeechToText();
+            // }
           },
           child: Icon(
             speechToText.isListening ? Icons.stop : Icons.mic,
@@ -152,109 +152,130 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void _showFloatingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Límite de facturación alcanzado'),
+          content: const Text(
+              'Lo siento, ha alcanzado el límite máximo de facturación de esta aplicación. Por favor, actualice su cuenta para continuar utilizando la aplicación.'),
+          actions: <Widget>[
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Visibility listaCaracteristicas() {
     return Visibility(
-            visible: generatedContent == null && generatedImageUrl == null,
-            child: Column(
-              children: [
-                SlideInLeft(
-                  delay: Duration(milliseconds: start),
-                  child: const FeatureBox(
-                    color: Pallete.firstSuggestionBoxColor,
-                    headerText: 'ChatGPT',
-                    descriptionText:
-                        'Una forma más inteligente de mantenerse organizado e informado con ChatGPT',
-                  ),
-                ),
-                SlideInLeft(
-                  delay: Duration(milliseconds: start + delay),
-                  child: const FeatureBox(
-                    color: Pallete.secondSuggestionBoxColor,
-                    headerText: 'Dall-E',
-                    descriptionText:
-                        'Inspírate y sé creativo con tu asistente personal impulsado por Dall-E',
-                  ),
-                ),
-                SlideInLeft(
-                  delay: Duration(milliseconds: start + 2 * delay),
-                  child: const FeatureBox(
-                    color: Pallete.thirdSuggestionBoxColor,
-                    headerText: 'Asistente de voz inteligente',
-                    descriptionText:
-                        'Obtenga lo mejor de ambos mundos con un asistente de voz impulsado por Dall-E y ChatGPT',
-                  ),
-                ),
-              ],
+      visible: generatedContent == null && generatedImageUrl == null,
+      child: Column(
+        children: [
+          SlideInLeft(
+            delay: Duration(milliseconds: start),
+            child: const FeatureBox(
+              color: Pallete.firstSuggestionBoxColor,
+              headerText: 'ChatGPT',
+              descriptionText:
+                  'Una forma más inteligente de mantenerse organizado e informado con ChatGPT',
             ),
-          );
+          ),
+          SlideInLeft(
+            delay: Duration(milliseconds: start + delay),
+            child: const FeatureBox(
+              color: Pallete.secondSuggestionBoxColor,
+              headerText: 'Dall-E',
+              descriptionText:
+                  'Inspírate y sé creativo con tu asistente personal impulsado por Dall-E',
+            ),
+          ),
+          SlideInLeft(
+            delay: Duration(milliseconds: start + 2 * delay),
+            child: const FeatureBox(
+              color: Pallete.thirdSuggestionBoxColor,
+              headerText: 'Asistente de voz inteligente',
+              descriptionText:
+                  'Obtenga lo mejor de ambos mundos con un asistente de voz impulsado por Dall-E y ChatGPT',
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   FadeInRight burbujaChat() {
     return FadeInRight(
-            child: Visibility(
-              visible: generatedImageUrl == null,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 10,
-                ),
-                margin: const EdgeInsets.symmetric(horizontal: 40).copyWith(
-                  top: 30,
-                ),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Pallete.borderColor,
-                  ),
-                  borderRadius: BorderRadius.circular(20).copyWith(
-                    topLeft: Radius.zero,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10.0),
-                  child: Text(
-                    generatedContent == null
-                        ? 'Buenos días, ¿qué tarea puedo hacer por usted?'
-                        : generatedContent!,
-                    style: TextStyle(
-                      fontFamily: 'Cera Pro',
-                      color: Pallete.mainFontColor,
-                      fontSize: generatedContent == null ? 25 : 18,
-                    ),
-                  ),
-                ),
+      child: Visibility(
+        visible: generatedImageUrl == null,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 10,
+          ),
+          margin: const EdgeInsets.symmetric(horizontal: 40).copyWith(
+            top: 30,
+          ),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Pallete.borderColor,
+            ),
+            borderRadius: BorderRadius.circular(20).copyWith(
+              topLeft: Radius.zero,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10.0),
+            child: Text(
+              generatedContent == null
+                  ? 'Buenos días, ¿qué tarea puedo hacer por usted?'
+                  : generatedContent!,
+              style: TextStyle(
+                fontFamily: 'Cera Pro',
+                color: Pallete.mainFontColor,
+                fontSize: generatedContent == null ? 25 : 18,
               ),
             ),
-          );
+          ),
+        ),
+      ),
+    );
   }
 
   ZoomIn imageAsistenteVirtual() {
     return ZoomIn(
-            child: Stack(
-              children: [
-                Center(
-                  child: Container(
-                    height: 120,
-                    width: 120,
-                    margin: const EdgeInsets.only(top: 4),
-                    decoration: const BoxDecoration(
-                      color: Pallete.assistantCircleColor,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-                Container(
-                  height: 123,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: AssetImage(
-                        'assets/images/virtualAssistant.png',
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+      child: Stack(
+        children: [
+          Center(
+            child: Container(
+              height: 120,
+              width: 120,
+              margin: const EdgeInsets.only(top: 4),
+              decoration: const BoxDecoration(
+                color: Pallete.assistantCircleColor,
+                shape: BoxShape.circle,
+              ),
             ),
-          );
+          ),
+          Container(
+            height: 123,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              image: DecorationImage(
+                image: AssetImage(
+                  'assets/images/virtualAssistant.png',
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
